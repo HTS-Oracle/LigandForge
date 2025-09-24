@@ -1,7 +1,3 @@
-"""
-Pocket Analyzer Module
-Enhanced pocket analyzer with comprehensive binding site analysis
-"""
 
 import numpy as np
 from typing import Dict, List, Optional, Tuple, Set

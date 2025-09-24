@@ -1,8 +1,3 @@
-"""
-Enhanced LigandForge Streamlit Application
-Now with 2D molecular structure visualization in results tables
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -793,10 +788,7 @@ class LigandForgeApp:
         # Header
         st.markdown('<h1 class="main-header">LigandForge 2.0</h1>', unsafe_allow_html=True)
         st.markdown("""
-        **Advanced AI-Driven Structure-Based Drug Design Platform**
-        
-        Combining structure-based drug design, AI-guided fragment assembly, 
-        and multi-objective optimization for intelligent molecular design.
+        **AI-Driven Structure-Based Drug Design Platform**
         """)
         
         # Check if core modules are available
@@ -826,7 +818,7 @@ class LigandForgeApp:
         # Structure input
         input_method = st.radio(
             "Input Method:", 
-            ["Upload PDB File", "PDB ID", "Sample Structure"],
+            ["Upload PDB File", "Sample Structure"],
             horizontal=True,
             help="Choose how to provide the protein structure"
         )

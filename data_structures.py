@@ -1,7 +1,3 @@
-"""
-Core Data Structures Module
-Defines all data classes and structures used throughout the LigandForge pipeline
-"""
 
 import numpy as np
 from dataclasses import dataclass, field

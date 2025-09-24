@@ -1,7 +1,3 @@
-"""
-Diversity Manager Module
-Manage molecular diversity and prevent duplicate generation
-"""
 
 import numpy as np
 import hashlib

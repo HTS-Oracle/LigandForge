@@ -1,7 +1,3 @@
-"""
-Configuration Management Module
-Centralized configuration for LigandForge pipeline
-"""
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Optional

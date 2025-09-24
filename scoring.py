@@ -1,7 +1,3 @@
-"""
-Multi-Objective Scoring Module
-Comprehensive scoring system for generated molecules
-"""
 
 import numpy as np
 import time

@@ -1,7 +1,3 @@
-"""
-Enhanced Visualization Module
-Plotting and visualization functions for LigandForge results with 2D structure display
-"""
 
 import numpy as np
 import pandas as pd

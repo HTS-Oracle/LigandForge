@@ -1,7 +1,3 @@
-"""
-Fragment Library Management Module
-Provides curated fragment libraries with property-based selection for drug design
-"""
 
 import random
 from typing import Dict, List, Optional

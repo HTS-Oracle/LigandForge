@@ -1,7 +1,3 @@
-"""
-Voxel-Based Analysis Module
-Comprehensive voxel-based analysis of binding sites with field calculations
-"""
 
 import numpy as np
 from typing import List, Tuple, Optional, Dict
