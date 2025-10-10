@@ -1,0 +1,30 @@
+Steps for Setup
+
+1. Create a Virtual Environment: Open your terminal or command prompt and create a new environment. Using conda is a good choice as it simplifies the installation of RDKit.
+    Bash
+
+conda create --name click2hit_env python=3.10
+
+Activate the Environment: Activate the newly created environment to ensure all packages are installed within it.
+Bash
+
+conda activate click2hit_env
+
+Install RDKit and Other Core Libraries: RDKit is a cheminformatics library and is best installed from the conda-forge channel. The other required libraries can also be installed this way.
+Bash
+
+    conda install -c conda-forge rdkit streamlit pandas plotly scikit-learn
+
+    Install remaining libraries via pip: The remaining standard libraries (numpy, etc.) are typically included as dependencies of the main packages, but it's good practice to install any that are explicitly listed if you run into any import errors. In this case, streamlit, pandas, and scikit-learn will handle most of the other dependencies like numpy.
+
+Full Code for conda and pip
+
+Bash
+
+# Using Conda (Recommended)
+conda create --name ligand_env python=3.10
+conda activate ligand_env
+conda install -c conda-forge rdkit streamlit pandas plotly scikit-learn
+
+# If any libraries are still missing, you can install them with pip
+pip install numpy
