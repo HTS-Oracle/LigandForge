@@ -1085,17 +1085,404 @@ class LigandForgeApp:
 
     def run(self):
         st.markdown('<h1 class="main-header">LigandForge 2.0</h1>', unsafe_allow_html=True)
-        st.markdown("**AI-Driven Structure-Based Drug Design Platform**")
+        st.markdown("**AI-Driven Structure-Based Drug Design Platform developed by Hossam Nada**")
+
+
+        # Main navigation tabs
+        main_tab1, main_tab2 = st.tabs(["🔬 Application", "ℹ️ About"])
+        
+        with main_tab1:
+            self.run_application()
+        
+        with main_tab2:
+            self.display_about_page()
+
+    def run_application(self):
+        """Main application interface"""
         if not LIGANDFORGE_AVAILABLE:
             st.error("LigandForge core modules are not available. Please install required dependencies.")
             st.stop()
+        
         PerformanceMonitor.update_performance_metrics()
         ConfigurationManager.setup_sidebar()
+        
         col1, col2 = st.columns([3,1])
         with col1:
             self.main_interface()
         with col2:
             self.sidebar_info()
+
+    def display_about_page(self):
+        """Comprehensive About page"""
+        
+        # Hero section
+        st.markdown("""
+        <div class="about-section">
+            <h1>🧬 LigandForge 2.0</h1>
+            <h3>Next-Generation AI-Powered Drug Design Platform</h3>
+            <p style="font-size: 1.1em; margin-top: 1rem;">
+                LigandForge combines cutting-edge artificial intelligence, cheminformatics, 
+                and computational chemistry to accelerate the drug discovery process.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Overview
+        st.markdown("## 📖 Overview")
+        st.markdown("""
+        LigandForge 2.0 is a comprehensive computational platform designed for structure-based 
+        drug design. It leverages advanced machine learning algorithms, genetic algorithms, and 
+        reinforcement learning to generate novel drug-like molecules optimized for specific 
+        protein targets.
+        
+        The platform integrates multiple computational approaches to:
+        - Generate diverse chemical libraries
+        - Optimize molecular properties
+        - Predict synthetic accessibility
+        - Analyze retrosynthetic routes
+        - Evaluate drug-likeness and pharmacological properties
+        """)
+        
+        # Key Features
+        st.markdown("## ✨ Key Features")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            <div class="feature-card">
+                <h3>🎯 Structure-Based Design</h3>
+                <p>Direct input of protein structures (PDB format) for targeted ligand generation. 
+                Automatic binding site detection and pharmacophore mapping.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div class="feature-card">
+                <h3>🧠 AI Optimization</h3>
+                <p>Hybrid optimization using Genetic Algorithms and Reinforcement Learning. 
+                Multi-objective scoring with customizable weight distributions.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div class="feature-card">
+                <h3>📊 Comprehensive Analysis</h3>
+                <p>Detailed molecular property calculations, drug-likeness predictions, 
+                and interactive visualization of chemical space.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("""
+            <div class="feature-card">
+                <h3>⚗️ Retrosynthetic Planning</h3>
+                <p>Automated retrosynthetic analysis for generated molecules. 
+                Step-by-step synthesis routes with reagent suggestions and yield predictions.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div class="feature-card">
+                <h3>🎨 Interactive Visualizations</h3>
+                <p>2D/3D molecular structures, property distribution plots, 
+                correlation matrices, and comparative analysis charts.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div class="feature-card">
+                <h3>💾 Multiple Export Formats</h3>
+                <p>Export results as CSV, JSON, SDF, or Excel. 
+                Save configurations for reproducible workflows.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Technical Stack
+        st.markdown("## 🔧 Technical Stack")
+        st.markdown("""
+        <div style="text-align: center; margin: 2rem 0;">
+            <span class="tech-badge">Python 3.8+</span>
+            <span class="tech-badge">RDKit</span>
+            <span class="tech-badge">TensorFlow</span>
+            <span class="tech-badge">PyTorch</span>
+            <span class="tech-badge">Streamlit</span>
+            <span class="tech-badge">Plotly</span>
+            <span class="tech-badge">NumPy</span>
+            <span class="tech-badge">Pandas</span>
+            <span class="tech-badge">SciPy</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Workflow
+        st.markdown("## 🔄 Workflow")
+        
+        workflow_col1, workflow_col2, workflow_col3 = st.columns(3)
+        
+        with workflow_col1:
+            st.markdown("""
+            ### 1️⃣ Input
+            - Upload protein structure (PDB)
+            - Define binding site
+            - Select target interactions
+            - Configure parameters
+            """)
+        
+        with workflow_col2:
+            st.markdown("""
+            ### 2️⃣ Generation
+            - AI-driven molecule creation
+            - Property optimization
+            - Diversity screening
+            - Iterative refinement
+            """)
+        
+        with workflow_col3:
+            st.markdown("""
+            ### 3️⃣ Analysis
+            - Score ranking
+            - Property evaluation
+            - Retrosynthetic analysis
+            - Export results
+            """)
+        
+        # Capabilities
+        st.markdown("## 🎓 Capabilities")
+        
+        cap_tab1, cap_tab2, cap_tab3, cap_tab4 = st.tabs([
+            "Molecular Generation", 
+            "Optimization Methods", 
+            "Property Prediction", 
+            "Analysis Tools"
+        ])
+        
+        with cap_tab1:
+            st.markdown("""
+            ### Molecular Generation
+            
+            **De Novo Design:**
+            - Fragment-based assembly
+            - Scaffold hopping
+            - Bioisosteric replacement
+            - Structure-activity relationship (SAR) exploration
+            
+            **Diversity Control:**
+            - Tanimoto similarity filtering
+            - Maximum common substructure (MCS) analysis
+            - Chemical space exploration
+            - Pharmacophore-guided generation
+            
+            **Constraints:**
+            - Molecular weight limits
+            - Ring system control
+            - Functional group requirements
+            - Synthetic accessibility filtering
+            """)
+        
+        with cap_tab2:
+            st.markdown("""
+            ### Optimization Methods
+            
+            **Genetic Algorithm (GA):**
+            - Population-based evolution
+            - Crossover and mutation operators
+            - Elitism for best candidates
+            - Multi-generational refinement
+            
+            **Reinforcement Learning (RL):**
+            - Policy gradient methods
+            - Reward shaping for desired properties
+            - Exploration-exploitation balance
+            - Continuous improvement
+            
+            **Hybrid Approach:**
+            - RL for initial exploration
+            - GA for final optimization
+            - Best of both strategies
+            - Enhanced convergence
+            """)
+        
+        with cap_tab3:
+            st.markdown("""
+            ### Property Prediction
+            
+            **Physicochemical Properties:**
+            - Molecular weight
+            - LogP (lipophilicity)
+            - Topological polar surface area (TPSA)
+            - Hydrogen bond donors/acceptors
+            - Rotatable bonds
+            
+            **Drug-likeness Metrics:**
+            - Lipinski's Rule of Five
+            - Veber's rules
+            - QED (Quantitative Estimate of Drug-likeness)
+            - Synthetic accessibility score
+            
+            **ADMET Predictions:**
+            - Blood-brain barrier permeability
+            - Human intestinal absorption
+            - CYP450 interactions
+            - Toxicity predictions
+            """)
+        
+        with cap_tab4:
+            st.markdown("""
+            ### Analysis Tools
+            
+            **Visualization:**
+            - 2D structure rendering
+            - Property distribution plots
+            - Chemical space mapping
+            - Correlation matrices
+            - Radar charts for multi-property comparison
+            
+            **Retrosynthetic Analysis:**
+            - Automated route planning
+            - Reagent suggestions
+            - Yield predictions
+            - Difficulty assessment
+            - Starting material identification
+            
+            **Comparison Tools:**
+            - Side-by-side molecule comparison
+            - Batch property analysis
+            - Statistical summaries
+            - Export to multiple formats
+            """)
+        
+        # Use Cases
+        st.markdown("## 🏥 Use Cases")
+        
+        st.markdown("""
+        ### Drug Discovery
+        - Lead identification and optimization
+        - Fragment-to-lead evolution
+        - Scaffold hopping for IP protection
+        - Multi-parameter optimization
+        
+        ### Chemical Biology
+        - Tool compound design
+        - Probe molecule development
+        - Target validation compounds
+        - Selective inhibitor design
+        
+        ### Medicinal Chemistry
+        - Hit-to-lead optimization
+        - ADMET property improvement
+        - Synthetic accessibility enhancement
+        - Structure-activity relationship exploration
+        
+        ### Academic Research
+        - Computational chemistry education
+        - Method development and benchmarking
+        - Virtual screening campaigns
+        - Chemical space exploration
+        """)
+        
+        # Getting Started
+        st.markdown("## 🚀 Getting Started")
+        
+        with st.expander("📝 Quick Start Guide", expanded=False):
+            st.markdown("""
+            ### Step 1: Prepare Your Input
+            1. Obtain a protein structure in PDB format
+            2. Identify the binding site (coordinates or use co-crystallized ligand)
+            3. Determine target interaction types
+            
+            ### Step 2: Configure Parameters
+            1. Choose a preset configuration or customize settings
+            2. Select optimization method (GA, RL, or Hybrid)
+            3. Adjust scoring weights for your goals
+            4. Set population size and generations
+            
+            ### Step 3: Run Generation
+            1. Click "Run LigandForge"
+            2. Monitor progress in real-time
+            3. Wait for optimization to complete
+            
+            ### Step 4: Analyze Results
+            1. Review top-scoring molecules
+            2. Examine property distributions
+            3. Optionally run retrosynthetic analysis
+            4. Export results in desired format
+            
+            ### Step 5: Iterate
+            1. Refine parameters based on results
+            2. Adjust scoring weights
+            3. Re-run with updated configuration
+            4. Compare iterations
+            """)
+        
+        with st.expander("⚙️ Configuration Tips", expanded=False):
+            st.markdown("""
+            ### Optimization Method Selection
+            - **Fast Screening**: Use GA with smaller population (50-100)
+            - **High Quality**: Use Hybrid with larger population (200+)
+            - **Exploration**: Use RL for diverse chemical space
+            
+            ### Scoring Weight Adjustment
+            - **Drug-like molecules**: Increase drug-likeness weight (0.3-0.4)
+            - **Synthetic feasibility**: Increase synthetic score weight (0.25-0.35)
+            - **Target binding**: Increase pharmacophore weight (0.3-0.4)
+            - **Novelty**: Increase novelty score for unique structures (0.15-0.25)
+            
+            ### Performance Optimization
+            - Start with smaller populations for testing
+            - Use preset configurations as starting points
+            - Monitor memory usage for large runs
+            - Save configurations for reproducibility
+            """)
+        
+        # System Requirements
+        st.markdown("## 💻 System Requirements")
+        
+        req_col1, req_col2 = st.columns(2)
+        
+        with req_col1:
+            st.markdown("""
+            ### Minimum Requirements
+            - **CPU**: 4 cores, 2.0 GHz
+            - **RAM**: 8 GB
+            - **Storage**: 2 GB free space
+            - **OS**: Windows 10, macOS 10.14, or Linux
+            - **Python**: 3.8 or higher
+            """)
+        
+        with req_col2:
+            st.markdown("""
+            ### Recommended Configuration
+            - **CPU**: 8+ cores, 3.0 GHz
+            - **RAM**: 16 GB or more
+            - **Storage**: 10 GB free space (for larger datasets)
+            - **GPU**: Optional, for accelerated computations
+            - **Python**: 3.9 or 3.10
+            """)
+        
+        # Dependencies Status
+        st.markdown("## 📦 Dependencies Status")
+        
+        status_data = {
+            'Module': ['LigandForge Core', 'RDKit', 'Plotly', 'Retrosynthesis', 'Performance Monitoring'],
+            'Status': [
+                '✅ Available' if LIGANDFORGE_AVAILABLE else '❌ Not Available',
+                '✅ Available' if RDKIT_AVAILABLE else '❌ Not Available',
+                '✅ Available' if PLOTLY_AVAILABLE else '❌ Not Available',
+                '✅ Available' if RETROSYNTHESIS_AVAILABLE else '❌ Not Available',
+                '✅ Available' if PSUTIL_AVAILABLE else '❌ Not Available'
+            ],
+            'Purpose': [
+                'Core pipeline functionality',
+                'Molecular structure handling',
+                'Interactive visualizations',
+                'Synthetic route planning',
+                'System resource monitoring'
+            ]
+        }
+        
+        status_df = pd.DataFrame(status_data)
+        st.dataframe(status_df, use_container_width=True)
+        
 
     def sidebar_info(self):
         st.header("Session Info")
