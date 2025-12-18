@@ -1494,7 +1494,7 @@ class LigandForgeApp:
 
     def main_interface(self):
         st.header("Input Structure")
-        input_method = st.radio("Input Method:", ["Upload PDB File", "PDB ID", "Sample Structure"], horizontal=True)
+        input_method = st.radio("Input Method:", ["Upload PDB File", "PDB ID"], horizontal=True)
         pdb_text = InputHandler.get_pdb_input(input_method)
         if not pdb_text:
             st.info("Please provide a PDB structure to proceed.")
