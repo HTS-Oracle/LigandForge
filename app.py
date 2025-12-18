@@ -1,4 +1,3 @@
-# app.py  (Corrected, end-to-end)
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -678,19 +677,20 @@ class UIComponents:
 
     @staticmethod
     def create_progress_tracker():
+        """Simple ongoing indicator with hourglass"""
         tracker = st.session_state.progress_tracker
-        if tracker.get('start_time') and tracker.get('overall_progress') is not None:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.progress(tracker['overall_progress'])
-                st.caption(tracker['current_stage'])
-            with col2:
-                elapsed = time.time() - tracker['start_time'] if tracker['start_time'] else 0
-                if tracker['overall_progress'] > 0.05:
-                    eta = (elapsed / tracker['overall_progress']) * (1 - tracker['overall_progress'])
-                    st.metric("ETA", f"{eta:.0f}s")
-                else:
-                    st.metric("Elapsed", f"{elapsed:.0f}s")
+        if tracker.get('start_time'):
+            elapsed = time.time() - tracker['start_time']
+            # Animated hourglass using different unicode characters
+            hourglass_frames = ['⏳', '⌛']
+            frame = hourglass_frames[int(elapsed) % 2]
+            st.markdown(f"""
+                <div style="text-align: center; padding: 20px;">
+                </div>
+                    <h2 style="color: #1f77b4;">{frame} Ongoing...</h2>
+                    <p style="color: #666; font-size: 14px;">Elapsed: {elapsed:.0f}s</p>
+                </div>
+            """, unsafe_allow_html=True)                
 
     @staticmethod
     def create_metric_container(title: str, value: str, delta: Optional[str] = None):
@@ -854,7 +854,7 @@ class InputHandler:
         return None
 
 # ------------------------
-# Configuration Manager (kept similar to original with fixes)
+# Configuration Manager 
 # ------------------------
 
 class ConfigurationManager:
@@ -1645,14 +1645,15 @@ class LigandForgeApp:
             if st.session_state.pipeline is None:
                 with st.spinner("Initializing LigandForge pipeline..."):
                     st.session_state.pipeline = LigandForgePipeline(st.session_state.config)
+            progress_container = st.empty()
             st.session_state.progress_tracker.update({
                 'start_time': time.time(),
                 'current_stage': 'Initializing...',
                 'overall_progress': 0.05
             })
-            progress_container = st.container()
-            with progress_container:
-                UIComponents.create_progress_tracker()
+            progress_placeholder = st.empty()
+            with progress_placeholder:
+                st.markdown("### ⏳ Running: Don't close this tab")
             opt_params = st.session_state.opt_params
             method_map = {
                 "Genetic Algorithm": "ga",
@@ -1669,11 +1670,11 @@ class LigandForgeApp:
                 with progress_container:
                     UIComponents.create_progress_tracker()
 
-            update_progress("Analyzing binding site...", 0.10)
-            time.sleep(0.1)
-            update_progress("Generating initial molecules...", 0.30)
-            time.sleep(0.1)
-            update_progress(f"Running {opt_method.upper()} optimization...", 0.50)
+            #update_progress("Analyzing binding site...", 0.10)
+            #time.sleep(0.1)
+            #update_progress("Generating initial molecules...", 0.30)
+            #time.sleep(0.1)
+            #update_progress(f"Running {opt_method.upper()} optimization...", 0.50)
 
             results = st.session_state.pipeline.run_full_pipeline(
                 pdb_text=pdb_text,
