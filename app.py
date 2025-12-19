@@ -1085,7 +1085,7 @@ class LigandForgeApp:
 
     def run(self):
         st.markdown('<h1 class="main-header">LigandForge 2.0</h1>', unsafe_allow_html=True)
-        st.markdown("**AI-Driven Structure-Based Drug Design Platform developed by Hossam Nada**")
+        st.markdown("**This website is free and open to all users, including commercial users, and no login is required.**")
 
 
         # Main navigation tabs
