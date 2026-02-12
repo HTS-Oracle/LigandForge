@@ -1085,7 +1085,7 @@ class LigandForgeApp:
 
     def run(self):
         st.markdown('<h1 class="main-header">LigandForge 2.0</h1>', unsafe_allow_html=True)
-        st.markdown("**This website is free and open to all users, including commercial users, and no login is required.**")
+        st.markdown("**AI-Driven Structure-Based Drug Design Platform developed by Hossam Nada**")
 
 
         # Main navigation tabs
@@ -1494,7 +1494,7 @@ class LigandForgeApp:
 
     def main_interface(self):
         st.header("Input Structure")
-        input_method = st.radio("Input Method:", ["Upload PDB File", "PDB ID"], horizontal=True)
+        input_method = st.radio("Input Method:", ["Upload PDB File"], horizontal=True)
         pdb_text = InputHandler.get_pdb_input(input_method)
         if not pdb_text:
             st.info("Please provide a PDB structure to proceed.")
