@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import time
@@ -30,7 +31,7 @@ try:
         create_lipinski_compliance_plot, generate_summary_statistics,
         create_sdf_from_molecules, generate_2d_structure_image,
         add_structure_images_to_dataframe, create_enhanced_results_display,
-        create_molecular_grid_image
+        create_molecular_grid_image, create_ngl_viewer_html
     )
     from pdb_parser import generate_sample_pdb
     LIGANDFORGE_AVAILABLE = True
@@ -1703,6 +1704,9 @@ class LigandForgeApp:
                 'opt_params_used': opt_params.copy()
             }
             st.session_state.results = results
+            st.session_state['pdb_text'] = pdb_text          # store for 3D viewer tab
+            st.session_state['binding_center'] = center.tolist()  # [x, y, z] – protein coordinate frame
+            st.session_state['binding_radius'] = float(radius)
             st.success(f"Pipeline completed successfully in {execution_time:.1f} seconds!")
 
             molecules = results.generation_results.molecules
@@ -1799,9 +1803,10 @@ class LigandForgeApp:
             return
         results_df = pd.DataFrame(results_data).sort_values('Total_Score', ascending=False).reset_index(drop=True)
 
-        # 6 tabs including retrosynthesis
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            "Results Overview", "Top Molecules", "Structure Grid", "Visualizations", "Retrosynthesis", "Analysis Report"
+        # 7 tabs: original 6 + new 3D Visualization tab
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Results Overview", "Top Molecules", "Structure Grid",
+            "Visualizations", "🔬 3D Visualization", "Retrosynthesis", "Analysis Report"
         ])
         with tab1:
             self.display_results_overview(results_df, results, molecules)
@@ -1812,8 +1817,69 @@ class LigandForgeApp:
         with tab4:
             self.display_visualizations(results_df, molecules, results)
         with tab5:
-            self.display_retrosynthesis_tab(molecules, scores)
+            st.header("3D Molecular Viewer")
+
+            pdb_text = st.session_state.get('pdb_text', "")
+
+            if not pdb_text:
+                st.warning(
+                    "No PDB structure available. "
+                    "Please load a protein structure and re-run the pipeline."
+                )
+            else:
+                # Build molecule selector from the ranked results_df
+                smiles_col = 'SMILES' if 'SMILES' in results_df.columns else None
+                id_col     = 'ID'     if 'ID'     in results_df.columns else None
+
+                if smiles_col and RDKIT_AVAILABLE:
+                    # Top-10 candidates (already sorted by Total_Score descending)
+                    top_df = results_df.head(10).copy()
+                    mol_labels = [
+                        f"{row[id_col]} — Score {row['Total_Score']:.3f}" if id_col
+                        else f"Molecule {i+1} — Score {row['Total_Score']:.3f}"
+                        for i, (_, row) in enumerate(top_df.iterrows())
+                    ]
+
+                    col_sel, col_info = st.columns([3, 1])
+                    with col_sel:
+                        selected_label = st.selectbox(
+                            "Select generated molecule to dock in the viewer:",
+                            options=mol_labels,
+                            index=0,
+                            help="Molecule is converted to 3-D coordinates server-side and overlaid on the protein."
+                        )
+                    selected_idx  = mol_labels.index(selected_label)
+                    selected_smiles = top_df.iloc[selected_idx][smiles_col]
+
+                    with col_info:
+                        st.metric(
+                            "Total Score",
+                            f"{top_df.iloc[selected_idx]['Total_Score']:.3f}"
+                        )
+
+                    st.caption(f"SMILES: `{selected_smiles}`")
+                else:
+                    # Fallback: manual entry if no SMILES column or no RDKit
+                    selected_smiles = st.text_input(
+                        "Ligand SMILES (RDKit required for 3-D embedding):",
+                        value="",
+                        help="Paste a SMILES string to overlay a ligand in the viewer."
+                    ) or None
+
+                # Render the viewer — ligand SDF is generated inside create_ngl_viewer_html
+                binding_center = st.session_state.get('binding_center', None)
+                binding_radius = st.session_state.get('binding_radius', 10.0)
+                with st.spinner("Generating 3-D ligand coordinates and rendering viewer…"):
+                    ngl_html = create_ngl_viewer_html(
+                        pdb_text,
+                        ligand_smiles=selected_smiles,
+                        binding_center=binding_center,
+                        binding_radius=binding_radius,
+                    )
+                components.html(ngl_html, height=560, scrolling=False)
         with tab6:
+            self.display_retrosynthesis_tab(molecules, scores)
+        with tab7:
             self.display_analysis_report(results)
 
     # ---- Results Overview ----

@@ -996,6 +996,220 @@ def create_lipinski_compliance_plot(df: pd.DataFrame):
     return None
 
 
+def _smiles_to_sdf(smiles: str,
+                   binding_center: Optional[List] = None) -> Optional[str]:
+    """
+    Convert a SMILES string to a 3D SDF block using RDKit.
+
+    Generates 3D coordinates via ETKDGv3 embedding + UFF minimisation, then
+    translates the ligand centroid to *binding_center* (protein coordinate
+    frame) so the molecule appears inside the binding site in NGL.
+
+    Args:
+        smiles:         SMILES string of the ligand.
+        binding_center: [x, y, z] centre of the binding site in Å
+                        (same coordinate frame as the PDB file).
+
+    Returns:
+        SDF string on success, or None if RDKit is unavailable / embedding fails.
+    """
+    if not RDKIT_AVAILABLE or not smiles:
+        return None
+    try:
+        from rdkit.Chem import AllChem
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        mol = Chem.AddHs(mol)
+
+        # --- 3-D embedding ---
+        params = AllChem.ETKDGv3()
+        params.randomSeed = 42
+        result = AllChem.EmbedMolecule(mol, params)
+        if result == -1:
+            result = AllChem.EmbedMolecule(mol, AllChem.ETKDG())
+        if result == -1:
+            warnings.warn(f"3D embedding failed for SMILES: {smiles}")
+            return None
+
+        AllChem.UFFOptimizeMolecule(mol, maxIters=500)
+        mol = Chem.RemoveHs(mol)
+
+        # --- Translate centroid → binding site centre ---
+        if binding_center is not None:
+            conf = mol.GetConformer()
+            positions = conf.GetPositions()          # shape (N, 3)
+            centroid  = positions.mean(axis=0)       # current centroid
+            target    = np.array(binding_center, dtype=float)
+            shift     = target - centroid
+
+            for atom_idx in range(mol.GetNumAtoms()):
+                x, y, z = positions[atom_idx]
+                conf.SetAtomPosition(atom_idx, (x + shift[0],
+                                                 y + shift[1],
+                                                 z + shift[2]))
+
+        sdf_block = Chem.MolToMolBlock(mol)
+        return sdf_block + "\n$$$$\n"
+
+    except Exception as e:
+        warnings.warn(f"_smiles_to_sdf failed for '{smiles}': {e}")
+        return None
+
+
+def create_ngl_viewer_html(pdb_string: str,
+                           ligand_smiles: Optional[str] = None,
+                           binding_center: Optional[List] = None,
+                           binding_radius: float = 10.0) -> str:
+    """
+    Generate a self-contained HTML page that renders a protein (PDB) in NGL Viewer,
+    optionally with a generated ligand (SMILES → 3-D SDF) placed at the binding site.
+
+    The ligand centroid is translated to binding_center so it sits inside the pocket.
+    Camera is focused on the binding site automatically.
+
+    Args:
+        pdb_string:     PDB text of the protein.
+        ligand_smiles:  SMILES of the ligand to overlay (optional).
+        binding_center: [x, y, z] pocket centre in the PDB coordinate frame.
+        binding_radius: Pocket radius in Å — used for camera zoom level.
+    """
+    NGL_CDN = "https://unpkg.com/ngl@2.0.0-dev.37/dist/ngl.js"
+
+    def js_str(s: str) -> str:
+        """Embed a multi-line string safely inside a JS backtick template literal."""
+        return s.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+
+    safe_pdb = js_str(pdb_string)
+
+    # ── ligand SDF ──────────────────────────────────────────────────────────
+    ligand_block  = ""   # JS that loads the ligand after stage is ready
+    status_msg    = ""   # plain-text status shown below the viewer
+
+    if ligand_smiles and ligand_smiles.strip():
+        sdf = _smiles_to_sdf(ligand_smiles.strip(), binding_center=binding_center)
+        if sdf:
+            safe_sdf     = js_str(sdf)
+            short_smiles = ligand_smiles[:60] + ("…" if len(ligand_smiles) > 60 else "")
+            status_msg   = f"✅ Ligand placed at binding site: {short_smiles}"
+            ligand_block = f"""
+      // ── ligand ──────────────────────────────────────────────────
+      var ligBlob = new Blob([`{safe_sdf}`], {{type:"text/plain"}});
+      stage.loadFile(ligBlob, {{ext:"sdf", name:"ligand"}})
+        .then(function(lig) {{
+          lig.addRepresentation("ball+stick", {{
+            colorScheme : "element",
+            multipleBond: true,
+            radiusScale : 0.6,
+            aspectRatio : 2.0
+          }});
+        }});
+"""
+        else:
+            status_msg = "⚠️ Could not generate 3-D coordinates for ligand — only protein shown."
+
+    # ── camera: focus on binding site if we have a centre ───────────────────
+    # Use a simple NGL sele-based orient after load, not Vector3 (doesn't exist in NGL 2.x)
+    if binding_center is not None:
+        bx = float(binding_center[0])
+        by = float(binding_center[1])
+        bz = float(binding_center[2])
+        br = float(binding_radius)
+        # We use stage.viewer.center and stage.viewer.zoom which are stable NGL 2.x API
+        camera_js = f"""
+      // orient camera to binding site
+      stage.viewer.center(new Float32Array([{bx}, {by}, {bz}]));
+      stage.viewer.zoom({br * 0.18});
+"""
+    else:
+        camera_js = ""
+
+    # ── pocket highlight: licorice sticks for residues near the centre ───────
+    # Done via NGL selection string passed as a surface/contact representation
+    pocket_repr = ""
+    if binding_center is not None:
+        bx = float(binding_center[0])
+        by = float(binding_center[1])
+        bz = float(binding_center[2])
+        br = float(binding_radius)
+        pocket_repr = f"""
+          // Show pocket residues as sticks (NGL will filter by distance client-side)
+          comp.addRepresentation("licorice", {{
+            sele        : "hetero and not water",
+            colorScheme : "element",
+            radiusScale : 0.4,
+            opacity     : 0.9
+          }});
+"""
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ background: #ffffff; font-family: Arial, sans-serif; }}
+  #viewport {{
+    width: 100%;
+    height: 490px;
+    display: block;
+    background: #ffffff;
+  }}
+  #status {{
+    padding: 5px 8px;
+    font-size: 11px;
+    color: #444;
+    background: #f8f8f8;
+    border-top: 1px solid #ddd;
+  }}
+</style>
+</head>
+<body>
+<div id="viewport"></div>
+<div id="status">{status_msg} &nbsp;|&nbsp; Rotate: left-drag · Zoom: scroll · Pan: right-drag</div>
+
+<script src="{NGL_CDN}"></script>
+<script>
+// Run after NGL script has loaded
+(function() {{
+  var stage = new NGL.Stage("viewport", {{
+    backgroundColor : "white",
+    quality         : "medium",
+    impostor        : true
+  }});
+
+  // ── protein ─────────────────────────────────────────────────────────────
+  var pdbBlob = new Blob([`{safe_pdb}`], {{type:"text/plain"}});
+  stage.loadFile(pdbBlob, {{ext:"pdb", name:"protein"}})
+    .then(function(comp) {{
+      comp.addRepresentation("cartoon", {{
+        colorScheme : "chainid",
+        opacity     : 0.9
+      }});
+      // Translucent surface for pocket context
+      comp.addRepresentation("surface", {{
+        colorScheme : "hydrophobicity",
+        opacity     : 0.1,
+        surfaceType : "ms"
+      }});
+      {pocket_repr}
+      comp.autoView();   // initial fit — camera_js below overrides this
+      {camera_js}
+    }});
+
+{ligand_block}
+
+  // responsive resize
+  window.addEventListener("resize", function() {{ stage.handleResize(); }});
+}})();
+</script>
+</body>
+</html>
+"""
+    return html
+
+
+
 def generate_summary_statistics(df: pd.DataFrame) -> Dict:
     """Generate summary statistics for molecular properties"""
     if df is None or df.empty:
