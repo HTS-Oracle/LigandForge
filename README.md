@@ -1,6 +1,3 @@
-LigandForge Technical Deployment and Installation Guide
-This guide provides the technical specifications and deployment procedures for LigandForge.
-
 1. Project Overview and Repository Access
 
 GitHub Repository: https://github.com/HTS-Oracle/LigandForge
