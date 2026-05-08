@@ -1,7 +1,9 @@
 1. Project Overview and Repository Access
 
 GitHub Repository: https://github.com/HTS-Oracle/LigandForge
+
 Live Proof-of-Concept: https://ligandforge.onrender.com
+
 Software Stack: Python (Core logic), Streamlit (Frontend/State Management), and RDKit (Cheminformatics Engine).
 
 2. Software Prerequisites
