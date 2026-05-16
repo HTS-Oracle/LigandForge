@@ -613,7 +613,9 @@ class AppState:
                 'structure_size': 150,
                 'max_structures_grid': 20,
                 'structure_format': 'png'
-            }
+            },
+            'status_message': None,
+            'message_type': 'success'
         }
         for key, value in defaults.items():
             if key not in st.session_state:
@@ -662,6 +664,32 @@ class InputValidator:
         return True
 
 class UIComponents:
+    @staticmethod
+    def display_status_message():
+        """Display and clear any pending status messages from session state"""
+        if st.session_state.get('status_message'):
+            message = st.session_state.status_message
+            message_type = st.session_state.get('message_type', 'success')
+            
+            if message_type == 'success':
+                st.success(message)
+            elif message_type == 'info':
+                st.info(message)
+            elif message_type == 'warning':
+                st.warning(message)
+            elif message_type == 'error':
+                st.error(message)
+            
+            # Clear the message after displaying
+            st.session_state.status_message = None
+            st.session_state.message_type = 'success'
+    
+    @staticmethod
+    def set_status_message(message: str, message_type: str = 'success'):
+        """Set a status message to be displayed after rerun"""
+        st.session_state.status_message = message
+        st.session_state.message_type = message_type
+    
     @staticmethod
     def display_error_with_context(error: Exception):
         if isinstance(error, LigandForgeError):
@@ -862,6 +890,10 @@ class ConfigurationManager:
     @staticmethod
     def setup_sidebar():
         st.sidebar.header("Configuration")
+        
+        # Display any pending status messages
+        UIComponents.display_status_message()
+        
         if not LIGANDFORGE_AVAILABLE:
             st.sidebar.error("LigandForge modules not available")
             return
@@ -933,8 +965,8 @@ class ConfigurationManager:
                         "High Quality": ConfigPresets.high_quality()
                     }
                     st.session_state.config = config_map[preset_type]
-                    st.success(f"Applied {preset_type} preset configuration!")
-                    st.experimental_rerun()
+                    UIComponents.set_status_message(f"Applied {preset_type} preset configuration!", 'success')
+                    st.rerun()
                 except Exception as e:
                     UIComponents.display_error_with_context(ValidationError(
                         f"Failed to apply {preset_type} preset",
@@ -986,13 +1018,13 @@ class ConfigurationManager:
                     if total_weight > 0:
                         normalized_weights = {k: v/total_weight for k, v in weights.items()}
                         config.reward_weights = normalized_weights
-                        st.success("Weights normalized!")
-                        st.experimental_rerun()
+                        UIComponents.set_status_message("Weights normalized!", 'success')
+                        st.rerun()
             with col2:
                 if st.button("Reset to Default"):
                     config.reward_weights = LigandForgeConfig().reward_weights
-                    st.success("Weights reset to default!")
-                    st.experimental_rerun()
+                    UIComponents.set_status_message("Weights reset to default!", 'success')
+                    st.rerun()
 
     @staticmethod
     def _setup_optimization_params():
@@ -1049,8 +1081,8 @@ class ConfigurationManager:
                         st.session_state.opt_params.update(config_data['opt_params'])
                         if 'display_options' in config_data:
                             st.session_state.display_options.update(config_data['display_options'])
-                        st.success("Configuration loaded!")
-                        st.experimental_rerun()
+                        UIComponents.set_status_message("Configuration loaded!", 'success')
+                        st.rerun()
                     else:
                         st.error("Invalid configuration file format")
                 except Exception as e:
@@ -1100,6 +1132,9 @@ class LigandForgeApp:
 
     def run_application(self):
         """Main application interface"""
+        # Display any pending status messages at the top
+        UIComponents.display_status_message()
+        
         if not LIGANDFORGE_AVAILABLE:
             st.error("LigandForge core modules are not available. Please install required dependencies.")
             st.stop()
